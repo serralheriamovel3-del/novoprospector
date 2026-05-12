@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+const name=c.nome||c.Name||c.Nome||c.empresa||Object.values(c)[0]||'Empresa';
+const phone=c.telefone||c.phone||c.Telefone||Object.values(c)[1]||'';
+const type=c.tipo||c.segmento||'';
+
+const div=document.createElement('div');
+div.className='contact';
+
+div.innerHTML=`
+<div class="contact-name">${name}</div>
+<div class="contact-phone">${phone}</div>
+`;
+
+
+
+div.onclick=()=>openDetail(name,phone,type);
+
+list.appendChild(div);
+});
+
+document.getElementById('counter').innerText=filtered.length+' contatos';
+}
+
+function openDetail(name,phone,type){
+
+current=phone;
+
+
+document.getElementById('dname').innerText=name;
+document.getElementById('dphone').innerHTML='📞 '+phone;
+document.getElementById('dtype').innerHTML='🏢 '+type;
+
+const btn=document.getElementById('sendBtn');
+
+btn.onclick=function(){
+
+const msg=document.getElementById('msg').value;
+
+const num=phone.replace(/\D/g,'');
+
+window.open(
+'https://wa.me/55'+num+'?text='+encodeURIComponent(msg),
+'_blank'
+);
+}
+
+detail.classList.add('show');
+}
+
+</script>
+
+</body>
+</html>
