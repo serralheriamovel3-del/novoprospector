@@ -1,822 +1,385 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Studio Premium</title>
-<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Painel Oficinas — WhatsApp</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  background:#0c0c0e;color:#e8e8ed;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Helvetica,Arial,sans-serif;
-  height:100vh;display:flex;flex-direction:column;overflow:hidden
-}
-nav{
-  height:52px;background:rgba(12,12,14,.97);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex;align-items:center;padding:0 24px;flex-shrink:0
-}
-.brand{font-size:13px;font-weight:600;color:#fff}
-.brand em{color:#0a84ff;font-style:normal}
-.nav-pill{margin-left:auto;background:rgba(10,132,255,.12);border:1px solid rgba(10,132,255,.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#0a84ff;letter-spacing:.5px}
-.fmt-toggle{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:3px;margin-left:16px}
-.fmt-btn{padding:4px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.35);transition:.15s;letter-spacing:.3px;font-family:inherit}
-.fmt-btn.on{background:rgba(10,132,255,.2);color:#0a84ff;border:1px solid rgba(10,132,255,.25)}
-.fmt-btn:not(.on):hover{color:rgba(255,255,255,.6)}
-.workspace{display:flex;flex:1;overflow:hidden}
-
-aside{width:288px;min-width:288px;background:#111113;border-right:1px solid rgba(255,255,255,.05);overflow-y:auto;display:flex;flex-direction:column}
-aside::-webkit-scrollbar{width:0}
-
-.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
-.tab{flex:1;padding:10px 2px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:rgba(255,255,255,.28);border-bottom:2px solid transparent;transition:.15s}
-.tab.on{color:#0a84ff;border-bottom-color:#0a84ff}
-.tab-content{display:none;flex-direction:column;flex:1}
-.tab-content.on{display:flex}
-
-.panel{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
-.ptitle{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:11px}
-
-.uzone{border:1.5px dashed rgba(255,255,255,.1);border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;transition:.2s;background:rgba(255,255,255,.02);margin-bottom:4px}
-.uzone:hover{border-color:rgba(10,132,255,.4);background:rgba(10,132,255,.03)}
-.uzone.loaded{padding:7px;border-style:solid;border-color:rgba(10,132,255,.25)}
-.uzone.loaded .ph{display:none}
-.uzone img{display:none;width:100%;max-height:80px;object-fit:contain;border-radius:6px}
-.uzone.loaded img{display:block}
-.ph .ico{font-size:18px;opacity:.2;margin-bottom:4px}
-.ph p{font-size:11px;color:rgba(255,255,255,.22);line-height:1.4}
-.ulabel{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
-
-.field{margin-bottom:9px}
-.field:last-child{margin-bottom:0}
-.field label{display:block;font-size:10px;font-weight:500;color:rgba(255,255,255,.25);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
-.field input[type=text]{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:7px 10px;color:#e8e8ed;font-family:inherit;font-size:13px;outline:none;transition:.2s}
-.field input[type=text]:focus{border-color:rgba(10,132,255,.45);background:rgba(10,132,255,.04)}
-.field input::placeholder{color:rgba(255,255,255,.15)}
-
-.cr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.cr:last-child{border-bottom:none}
-.cr-lbl{font-size:12px;color:rgba(255,255,255,.45)}
-.cr-right{display:flex;align-items:center;gap:8px}
-.cr-hex{font-size:11px;color:rgba(255,255,255,.28);font-family:monospace;min-width:52px}
-input[type=color]{width:30px;height:30px;border:none;border-radius:7px;background:none;cursor:pointer;padding:0}
-input[type=color]::-webkit-color-swatch-wrapper{padding:0;border-radius:5px}
-input[type=color]::-webkit-color-swatch{border:none;border-radius:5px}
-
-.sr{display:flex;align-items:center;gap:10px;margin-top:8px}
-.sr label{font-size:10px;color:rgba(255,255,255,.22);letter-spacing:.8px;text-transform:uppercase;min-width:68px}
-.sr input[type=range]{flex:1;accent-color:#0a84ff;cursor:pointer}
-.sr-val{font-size:11px;color:#0a84ff;min-width:30px;text-align:right}
-.dur-row{display:flex;align-items:center;gap:10px}
-.dur-row input[type=range]{flex:1;accent-color:#0a84ff;cursor:pointer}
-.dur-val{font-size:12px;color:#0a84ff;min-width:28px;text-align:right}
-
-.btn{width:100%;padding:10px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.15s;border:none;margin-bottom:7px;letter-spacing:.2px}
-.btn:last-child{margin-bottom:0}
-.btn-ai{background:rgba(10,132,255,.14);color:#0a84ff;border:1px solid rgba(10,132,255,.18)}
-.btn-ai:hover:not(:disabled){background:rgba(10,132,255,.22)}
-.btn-ai:disabled{opacity:.35;cursor:not-allowed}
-.btn-play{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.09)}
-.btn-play:hover{background:rgba(255,255,255,.1)}
-.btn-exp{background:rgba(10,132,255,.88);color:#fff}
-.btn-exp:hover:not(:disabled){background:#0a84ff}
-.btn-exp:disabled{opacity:.4;cursor:not-allowed}
-
-.ai-out{display:none;margin-top:9px;padding:9px 10px;background:rgba(10,132,255,.05);border:1px solid rgba(10,132,255,.1);border-radius:8px;font-size:11px;color:rgba(255,255,255,.42);line-height:1.7}
-.ai-out.show{display:block}
-.ai-out strong{color:#0a84ff;font-weight:500}
-
-/* EXPORT STATUS */
-.exp-status{display:none;margin-top:10px}
-.exp-status.show{display:block}
-.exp-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px;display:flex;justify-content:space-between}
-.exp-label span{color:#0a84ff}
-.exp-bar-bg{background:rgba(255,255,255,.06);border-radius:4px;height:4px;overflow:hidden}
-.exp-bar-fill{height:100%;background:#0a84ff;border-radius:4px;width:0;transition:width .2s}
-.exp-step{font-size:10px;color:rgba(255,255,255,.25);margin-top:6px;letter-spacing:.3px}
-
-.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 28px;gap:14px;background:#0c0c0e;overflow:hidden}
-.canvas-wrap{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.07),0 28px 70px rgba(0,0,0,.75);transition:.3s}
-.canvas-wrap.vertical{height:calc(100vh - 52px - 68px);aspect-ratio:9/16;max-width:330px}
-.canvas-wrap.horizontal{width:100%;max-width:760px;aspect-ratio:16/9}
-canvas{width:100%;height:100%;display:block}
-
-.transport{display:flex;align-items:center;gap:12px;width:100%;max-width:330px;transition:.3s}
-.t-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#fff;cursor:pointer;transition:.15s;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.t-btn:hover{background:rgba(10,132,255,.15);border-color:rgba(10,132,255,.3);color:#0a84ff}
-.scrub{flex:1;height:2px;background:rgba(255,255,255,.08);border-radius:2px;cursor:pointer;position:relative}
-.sf{height:100%;background:#0a84ff;border-radius:2px;width:0;pointer-events:none}
-.st{position:absolute;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#0a84ff;left:0;opacity:0;transition:opacity .15s;pointer-events:none}
-.scrub:hover .st{opacity:1}
-.td{font-size:11px;color:rgba(255,255,255,.28);min-width:58px;text-align:right;letter-spacing:.5px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Segoe UI,sans-serif;background:#f0f2f5;color:#222;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:#128C7E;color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;flex-shrink:0}
+header h1{font-size:1rem;font-weight:600}
+.timer-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 12px}
+.timer-label{font-size:12px;opacity:.85}
+.timer-display{font-size:20px;font-weight:700;min-width:58px;text-align:center;font-variant-numeric:tabular-nums}
+.timer-display.urgent{color:#ffeb3b;animation:pulse 0.5s infinite alternate}
+@keyframes pulse{from{opacity:1}to{opacity:0.4}}
+.timer-min{width:46px;padding:3px 6px;font-size:13px;border-radius:6px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.2);color:white;text-align:center}
+.tbtn{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;border:1px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.2);color:white;cursor:pointer}
+.tbtn:hover{background:rgba(255,255,255,0.35)}
+.tbtn.running{background:#e53935;border-color:#e53935}
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:265px;background:white;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-top{padding:12px}
+.upload-btn{width:100%;padding:10px;background:#f5f5f5;border:2px dashed #ccc;border-radius:8px;font-size:13px;color:#666;cursor:pointer;text-align:center;margin-bottom:10px}
+.upload-btn:hover{background:#e8f5e9;border-color:#128C7E;color:#128C7E}
+.search{width:100%;padding:8px 10px;font-size:13px;border:1px solid #ddd;border-radius:8px;margin-bottom:6px}
+.count{font-size:12px;color:#888;margin-bottom:4px}
+.contact-list{flex:1;overflow-y:auto;padding:0 8px 12px}
+.citem{padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.citem:hover{border-color:#128C7E;background:#f1faf8}
+.citem.active{border-color:#128C7E;background:#e8f5f1}
+.cname{font-size:13px;font-weight:600;color:#222}
+.ctype{font-size:11px;color:#888;margin-top:1px}
+.cphone{font-size:11px;color:#aaa}
+.sent-mark{display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:10px;padding:1px 7px;border-radius:20px;margin-top:3px}
+.main{flex:1;overflow-y:auto;padding:16px;background:#f0f2f5}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#aaa;gap:10px}
+.card{background:white;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.company-name{font-size:1.15rem;font-weight:700;color:#111}
+.company-type{font-size:13px;color:#888;margin-top:2px}
+.rating{background:#FFF8E1;color:#F57F17;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:600;white-space:nowrap}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.info-item label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.04em;display:block}
+.info-item p{font-size:13px;color:#333;margin-top:2px}
+.review-box{background:#f9f9f9;border-left:3px solid #128C7E;padding:10px 14px;border-radius:0 8px 8px 0;font-size:12px;color:#555;margin-bottom:14px;line-height:1.6;font-style:italic}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.btn{padding:8px 14px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;border:1px solid #ddd;background:white;color:#333;transition:all .15s}
+.btn:hover{opacity:.85}
+.btn-maps{background:#4285F4;border-color:#4285F4;color:white}
+.btn-web{background:#607D8B;border-color:#607D8B;color:white}
+.btn-send-wpp{background:#128C7E;color:white;width:100%;justify-content:center;padding:14px;font-size:15px;border-radius:10px;text-decoration:none;display:flex;align-items:center;gap:8px;font-weight:700;border:none;transition:opacity .15s}
+.btn-send-wpp:hover{opacity:.88}
+.no-phone{font-size:13px;color:#aaa;font-style:italic;padding:10px 0}
+.msg-panel{width:290px;background:white;border-left:1px solid #e0e0e0;display:flex;flex-direction:column;flex-shrink:0;padding:16px;gap:10px;overflow-y:auto}
+.msg-panel-title{font-size:13px;font-weight:700;color:#128C7E;padding-bottom:8px;border-bottom:2px solid #e8f5f1;display:flex;align-items:center;gap:6px}
+.universal-badge{background:#128C7E;color:white;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.msg-panel textarea{width:100%;min-height:160px;padding:10px 12px;font-size:13px;font-family:Segoe UI,sans-serif;border:1.5px solid #ddd;border-radius:8px;resize:none;line-height:1.6}
+.msg-panel textarea:focus{outline:none;border-color:#128C7E}
+.msg-chars{font-size:11px;color:#aaa;text-align:right;margin-top:-6px}
+.btn-save{padding:9px;font-size:12px;font-weight:600;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;border-radius:8px;cursor:pointer;width:100%}
+.btn-save:hover{background:#C8E6C9}
+.saved-section-title{font-size:12px;font-weight:600;color:#888;margin-top:4px}
+.saved-list{display:flex;flex-direction:column;gap:6px}
+.saved-item{background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:6px;cursor:pointer}
+.saved-item:hover{border-color:#128C7E;background:#f1faf8}
+.saved-text{font-size:12px;color:#333;flex:1;line-height:1.4}
+.saved-del{color:#ccc;cursor:pointer;font-size:18px;line-height:1;flex-shrink:0}
+.saved-del:hover{color:#e53935}
+.no-saved{font-size:12px;color:#aaa;font-style:italic}
+.hint{font-size:11px;color:#666;line-height:1.6;background:#f0faf7;padding:8px 10px;border-radius:8px;border-left:3px solid #128C7E}
 </style>
 </head>
 <body>
-<nav>
-  <span class="brand">Studio <em>Premium</em></span>
-  <div class="fmt-toggle">
-    <button class="fmt-btn on" id="fmtV" onclick="setFormat('vertical')">◻ 9:16</button>
-    <button class="fmt-btn" id="fmtH" onclick="setFormat('horizontal')">▭ 16:9</button>
+
+<header>
+  <h1>🔧 Painel de Contatos — Oficinas Mecânicas</h1>
+  <div class="timer-box">
+    <span class="timer-label">Próximo em</span>
+    <input type="number" class="timer-min" id="tmin" value="10" min="1" max="120">
+    <span class="timer-label">min</span>
+    <div class="timer-display" id="tdisp">10:00</div>
+    <button class="tbtn" id="tbtn" onclick="toggleTimer()">▶ Iniciar</button>
+    <button class="tbtn" onclick="resetTimer()">↺</button>
   </div>
-  <div class="nav-pill" id="navPill">● PRONTO</div>
-</nav>
-<div class="workspace">
-<aside>
-  <div class="tabs">
-    <div class="tab on"  onclick="swTab('imagens',this)">Imagens</div>
-    <div class="tab"     onclick="swTab('textos',this)">Textos</div>
-    <div class="tab"     onclick="swTab('cores',this)">Cores</div>
-    <div class="tab"     onclick="swTab('export',this)">Exportar</div>
+</header>
+
+<div class="layout">
+
+  <!-- Coluna 1: lista de contatos -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="upload-btn" onclick="document.getElementById('file-input').click()">
+        📂 Clique para abrir CSV
+      </div>
+      <input type="file" id="file-input" accept=".csv" style="display:none" onchange="loadFile(this)">
+      <input type="text" class="search" id="search" placeholder="Buscar empresa ou telefone..." oninput="filterList()" style="display:none">
+      <p class="count" id="count" style="display:none"></p>
+    </div>
+    <div class="contact-list" id="contact-list"></div>
   </div>
 
-  <!-- IMAGENS -->
-  <div class="tab-content on" id="tab-imagens">
-    <div class="panel">
-      <div class="ptitle">Fundo</div>
-      <div class="ulabel">Imagem de fundo</div>
-      <div class="uzone" id="bgZone" onclick="document.getElementById('bgF').click()">
-        <div class="ph"><div class="ico">⊕</div><p>Clique para carregar<br><small style="opacity:.6">JPG · PNG · WEBP</small></p></div>
-        <img id="bgP" alt="">
-      </div>
-      <input type="file" id="bgF" accept="image/*" style="display:none">
-      <div class="sr">
-        <label>Escurecer</label>
-        <input type="range" id="ovSlider" min="0" max="90" value="45"
-          oninput="ovAlpha=this.value/100;document.getElementById('ovVal').textContent=this.value+'%';drawFrame(ct)">
-        <span class="sr-val" id="ovVal">45%</span>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="ptitle">Produto</div>
-      <div class="ulabel">Imagem do produto</div>
-      <div class="uzone" id="prZone" onclick="document.getElementById('prF').click()">
-        <div class="ph"><div class="ico">⊕</div><p>Clique para carregar<br><small style="opacity:.6">JPG · PNG · WEBP</small></p></div>
-        <img id="prP" alt="">
-      </div>
-      <input type="file" id="prF" accept="image/*" style="display:none">
-      <div class="sr" style="margin-top:10px">
-        <label>Tamanho</label>
-        <input type="range" id="prodSize" min="40" max="100" value="72"
-          oninput="pScale=this.value/100;document.getElementById('psVal').textContent=this.value+'%';drawFrame(ct)">
-        <span class="sr-val" id="psVal">72%</span>
-      </div>
+  <!-- Coluna 2: detalhe do contato -->
+  <div class="main" id="main">
+    <div class="empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <p>Abra um CSV e clique em uma empresa</p>
     </div>
   </div>
 
-  <!-- TEXTOS -->
-  <div class="tab-content" id="tab-textos">
-    <div class="panel">
-      <div class="ptitle">Conteúdo</div>
-      <div class="field"><label>Label topo</label><input type="text" id="fLabel" value="NOVO PRODUTO" placeholder="Ex: LANÇAMENTO"></div>
-      <div class="field"><label>Nome</label><input type="text" id="fName" value="SUPER BOX" placeholder="Nome do produto"></div>
-      <div class="field"><label>Subtítulo</label><input type="text" id="fSub" value="Redefinindo o streaming" placeholder="Subtítulo"></div>
-      <div class="field"><label>Preço</label><input type="text" id="fPrice" value="R$ 299" placeholder="R$ 0"></div>
-      <div class="field"><label>Oferta</label><input type="text" id="fOffer" value="50% OFF · Frete grátis" placeholder="Oferta especial"></div>
-      <div class="field"><label>Call to Action</label><input type="text" id="fCTA" value="Comprar agora" placeholder="CTA"></div>
+  <!-- Coluna 3: mensagem universal -->
+  <div class="msg-panel">
+    <div class="msg-panel-title">
+      ✏️ Mensagem universal
+      <span class="universal-badge">PADRÃO</span>
     </div>
-    <div class="panel">
-      <div class="ptitle">IA</div>
-      <button class="btn btn-ai" id="btnAI" onclick="runAI()">Sugerir textos automaticamente</button>
-      <div class="ai-out" id="aiOut"></div>
+
+    <div class="hint">
+      Escreva uma vez aqui — esta mensagem será enviada para <strong>todos</strong> os contatos ao clicar no botão verde.
     </div>
-    <div class="panel">
-      <div class="ptitle">Duração</div>
-      <div class="dur-row">
-        <input type="range" id="durSlider" min="5" max="12" value="8" step="1"
-          oninput="DUR=+this.value;document.getElementById('durVal').textContent=this.value+'s'">
-        <span class="dur-val" id="durVal">8s</span>
-      </div>
-    </div>
+
+    <textarea id="global-msg" placeholder="Digite aqui a mensagem padrão para todas as oficinas..." oninput="onMsgInput()"></textarea>
+    <div class="msg-chars" id="msg-chars">0 caracteres</div>
+
+    <button class="btn-save" onclick="saveMsg()">💾 Salvar esta mensagem</button>
+
+    <div class="saved-section-title">⭐ Mensagens salvas</div>
+    <div class="saved-list" id="saved-list"></div>
   </div>
 
-  <!-- CORES -->
-  <div class="tab-content" id="tab-cores">
-    <div class="panel">
-      <div class="ptitle">Textos</div>
-      <div class="cr"><span class="cr-lbl">Nome</span><div class="cr-right"><span class="cr-hex" id="hN">#ffffff</span><input type="color" id="cN" value="#ffffff" oninput="document.getElementById('hN').textContent=this.value;drawFrame(ct)"></div></div>
-      <div class="cr"><span class="cr-lbl">Subtítulo</span><div class="cr-right"><span class="cr-hex" id="hS">#a8c8e0</span><input type="color" id="cS" value="#a8c8e0" oninput="document.getElementById('hS').textContent=this.value;drawFrame(ct)"></div></div>
-      <div class="cr"><span class="cr-lbl">Preço</span><div class="cr-right"><span class="cr-hex" id="hP">#ffffff</span><input type="color" id="cP" value="#ffffff" oninput="document.getElementById('hP').textContent=this.value;drawFrame(ct)"></div></div>
-      <div class="cr"><span class="cr-lbl">Label topo</span><div class="cr-right"><span class="cr-hex" id="hL">#0a84ff</span><input type="color" id="cL" value="#0a84ff" oninput="document.getElementById('hL').textContent=this.value;drawFrame(ct)"></div></div>
-    </div>
-    <div class="panel">
-      <div class="ptitle">Acento</div>
-      <div class="cr"><span class="cr-lbl">Linha / divisor</span><div class="cr-right"><span class="cr-hex" id="hA">#0a84ff</span><input type="color" id="cA" value="#0a84ff" oninput="document.getElementById('hA').textContent=this.value;drawFrame(ct)"></div></div>
-      <div class="cr"><span class="cr-lbl">Oferta</span><div class="cr-right"><span class="cr-hex" id="hO">#0a84ff</span><input type="color" id="cO" value="#0a84ff" oninput="document.getElementById('hO').textContent=this.value;drawFrame(ct)"></div></div>
-    </div>
-    <div class="panel">
-      <div class="ptitle">Botão CTA</div>
-      <div class="cr"><span class="cr-lbl">Fundo</span><div class="cr-right"><span class="cr-hex" id="hCb">#0a84ff</span><input type="color" id="cCb" value="#0a84ff" oninput="document.getElementById('hCb').textContent=this.value;drawFrame(ct)"></div></div>
-      <div class="cr"><span class="cr-lbl">Texto</span><div class="cr-right"><span class="cr-hex" id="hCt">#ffffff</span><input type="color" id="cCt" value="#ffffff" oninput="document.getElementById('hCt').textContent=this.value;drawFrame(ct)"></div></div>
-    </div>
-  </div>
-
-  <!-- EXPORTAR -->
-  <div class="tab-content" id="tab-export">
-    <div class="panel">
-      <div class="ptitle">Preview</div>
-      <button class="btn btn-play" onclick="startPlay()">▶ Play completo</button>
-    </div>
-    <div class="panel">
-      <div class="ptitle">Salvar como MP4</div>
-      <button class="btn btn-exp" id="btnExp" onclick="exportMP4()">↓ Exportar .MP4</button>
-      <div class="exp-status" id="expStatus">
-        <div class="exp-label"><span id="expStepLbl">Preparando...</span><span id="expPct">0%</span></div>
-        <div class="exp-bar-bg"><div class="exp-bar-fill" id="expBar"></div></div>
-        <div class="exp-step" id="expDetail"></div>
-      </div>
-      <p style="font-size:10px;color:rgba(255,255,255,.18);line-height:1.6;margin-top:10px">
-        Formato vertical 9:16 · H.264 MP4<br>Pronto para Instagram Reels e Stories
-      </p>
-      <div style="margin-top:10px;padding:8px 10px;background:rgba(255,170,0,.06);border:1px solid rgba(255,170,0,.15);border-radius:8px;font-size:10px;color:rgba(255,170,0,.7);line-height:1.6">
-        ⚠ Requer <strong style="color:rgba(255,170,0,.9)">Google Chrome 94+</strong><br>Safari e Firefox não suportam exportação MP4.
-      </div>
-    </div>
-  </div>
-</aside>
-
-<div class="stage">
-  <div class="canvas-wrap vertical" id="canvasWrap">
-    <canvas id="cv" width="404" height="720"></canvas>
-  </div>
-  <div class="transport">
-    <button class="t-btn" id="tBtn" onclick="togglePlay()">▶</button>
-    <div class="scrub" id="scrub" onclick="onScrub(event)">
-      <div class="sf" id="sf"></div>
-      <div class="st" id="st"></div>
-    </div>
-    <div class="td" id="td">0:00 / 0:08</div>
-  </div>
-</div>
 </div>
 
 <script>
-const cv=document.getElementById('cv'),cx=cv.getContext('2d');
-let W=404,H=720,FMT='vertical';
-let DUR=8,img=null,bgImg=null,ovAlpha=0.45,pScale=0.72;
-let playing=false,ct=0,t0=null,pauseAt=0,raf=null,triggered={};
-let AC=null;
+let contacts = [], filtered = [], selected = null;
+let savedMsgs = JSON.parse(localStorage.getItem('msgs_v3') || '[]');
+let sentList  = JSON.parse(localStorage.getItem('sent_v3') || '[]');
+let timerSec = 600, timerOn = false, timerRef = null;
 
+// Restaura mensagem salva
+const stored = localStorage.getItem('global_msg_v3') || '';
+document.getElementById('global-msg').value = stored;
+updateCharCount();
+renderSaved();
 
-// ── TABS ──
-function setFormat(fmt){
-  FMT=fmt;
-  const isV=fmt==='vertical';
-  W=isV?404:1280; H=isV?720:720;
-  if(!isV){W=1280;H=720;}
-  cv.width=W; cv.height=H;
-  const wrap=document.getElementById('canvasWrap');
-  const transport=document.querySelector('.transport');
-  if(isV){
-    wrap.className='canvas-wrap vertical';
-    transport.style.maxWidth='330px';
-  } else {
-    wrap.className='canvas-wrap horizontal';
-    transport.style.maxWidth='760px';
+function onMsgInput() {
+  localStorage.setItem('global_msg_v3', document.getElementById('global-msg').value);
+  updateCharCount();
+  updateWppBtn();
+}
+
+function updateCharCount() {
+  const len = document.getElementById('global-msg').value.length;
+  document.getElementById('msg-chars').textContent = len + ' caractere' + (len !== 1 ? 's' : '');
+}
+
+function getGlobalMsg() {
+  return document.getElementById('global-msg').value;
+}
+
+function updateWppBtn() {
+  const btn = document.getElementById('wpp-send-btn');
+  if (btn && selected && selected.phone) {
+    btn.href = wppLink(selected.phone);
   }
-  document.getElementById('fmtV').className='fmt-btn'+(isV?' on':'');
-  document.getElementById('fmtH').className='fmt-btn'+(!isV?' on':'');
-  // update duration display
-  const ds=Math.floor(DUR);
-  document.getElementById('td').textContent=`0:00 / 0:${String(ds).padStart(2,'0')}`;
-  triggered={};
-  drawFrame(0);
 }
 
-function swTab(id,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('tab-'+id).classList.add('on');
-}
-
-// ── UPLOADS ──
-function setupUpload(fId,zId,pId,isProd){
-  document.getElementById(fId).addEventListener('change',e=>{
-    const file=e.target.files[0];if(!file)return;
-    const r=new FileReader();
-    r.onload=ev=>{
-      const i=new Image();
-      i.onload=()=>{
-        if(isProd)img=i;else bgImg=i;
-        document.getElementById(pId).src=ev.target.result;
-        document.getElementById(zId).classList.add('loaded');
-        drawFrame(ct);
-      };i.src=ev.target.result;
-    };r.readAsDataURL(file);
+function loadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      contacts = results.data
+        .filter(r => r['qBF1Pd'] && r['qBF1Pd'].trim().length > 1)
+        .map(r => ({
+          name:    (r['qBF1Pd'] || '').trim(),
+          rating:  (r['MW4etd'] || '').trim(),
+          reviews: (r['UY7F9']  || '').trim(),
+          type:    (r['W4Efsd'] || r['W4Efsd 2'] || '').trim(),
+          addr:    (r['W4Efsd 3'] || r['W4Efsd 4'] || '').replace(/·/g,'').trim(),
+          status:  (r['W4Efsd 4'] || r['W4Efsd 5'] || '').replace(/·/g,'').trim(),
+          hours:   (r['W4Efsd 5'] || r['W4Efsd 6'] || '').replace(/·/g,'').trim(),
+          phone:   (r['UsdlK']   || '').trim(),
+          maps:    (r['hfpxzc href'] || '').trim(),
+          website: (r['lcr4fd href'] || '').trim(),
+          review:  (r['ah5Ghc'] || '').replace(/^"|"$/g,'').trim(),
+        }));
+      filtered = [...contacts];
+      renderList();
+      document.getElementById('search').style.display = 'block';
+      document.getElementById('count').style.display = 'block';
+      document.querySelector('.upload-btn').innerHTML = '✅ ' + contacts.length + ' empresas — clique para trocar';
+    }
   });
 }
-setupUpload('bgF','bgZone','bgP',false);
-setupUpload('prF','prZone','prP',true);
-['fLabel','fName','fSub','fPrice','fOffer','fCTA'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',()=>drawFrame(ct));
-});
 
-// ── AUDIO ──
-function initAC(){
-  if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
-  if(AC.state==='suspended')AC.resume();
-}
-function snd(type){
-  initAC();const ac=AC,now=ac.currentTime;
-  if(type==='impact'){
-    const o=ac.createOscillator(),g=ac.createGain();
-    o.connect(g);g.connect(ac.destination);o.type='sine';
-    o.frequency.setValueAtTime(90,now);o.frequency.exponentialRampToValueAtTime(25,now+0.2);
-    g.gain.setValueAtTime(0.5,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.2);
-    o.start(now);o.stop(now+0.2);
-    const buf=ac.createBuffer(1,ac.sampleRate*0.04,ac.sampleRate),d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
-    const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g2=ac.createGain();
-    f.type='highpass';f.frequency.value=2500;s.buffer=buf;s.connect(f);f.connect(g2);g2.connect(ac.destination);
-    g2.gain.setValueAtTime(0.1,now);g2.gain.exponentialRampToValueAtTime(0.001,now+0.04);s.start(now);
-  }else if(type==='whoosh'){
-    const buf=ac.createBuffer(1,ac.sampleRate*0.28,ac.sampleRate),d=buf.getChannelData(0);
-    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.4);
-    const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();
-    f.type='bandpass';f.frequency.value=700;f.Q.value=0.9;s.buffer=buf;s.connect(f);f.connect(g);g.connect(ac.destination);
-    g.gain.setValueAtTime(0.001,now);g.gain.linearRampToValueAtTime(0.07,now+0.07);
-    g.gain.exponentialRampToValueAtTime(0.001,now+0.28);s.start(now);
-  }else if(type==='soft'){
-    const o=ac.createOscillator(),g=ac.createGain();
-    o.connect(g);g.connect(ac.destination);o.type='sine';o.frequency.value=880;
-    g.gain.setValueAtTime(0.045,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.16);
-    o.start(now);o.stop(now+0.16);
-  }
+function filterList() {
+  const q = document.getElementById('search').value.toLowerCase();
+  filtered = contacts.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.type.toLowerCase().includes(q) ||
+    c.phone.includes(q)
+  );
+  renderList();
 }
 
-// ── EASING / MATH ──
-function eO3(t){return 1-Math.pow(1-t,3);}
-function eO5(t){return 1-Math.pow(1-t,5);}
-function cl(v,a,b){return Math.max(a,Math.min(b,v));}
-function pr(t,s,e){return cl((t-s)/(e-s),0,1);}
-function sb(t){
-  if(t<=0)return 0;if(t>=1)return 1;
-  return 1-Math.exp(-12*t)*Math.cos(8*Math.PI*t);
-}
-function h2r(hex,a){
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return`rgba(${r},${g},${b},${a})`;
-}
-function rr(x,y,w,h,r){
-  cx.beginPath();cx.moveTo(x+r,y);cx.lineTo(x+w-r,y);cx.quadraticCurveTo(x+w,y,x+w,y+r);
-  cx.lineTo(x+w,y+h-r);cx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);cx.lineTo(x+r,y+h);
-  cx.quadraticCurveTo(x,y+h,x,y+h-r);cx.lineTo(x,y+r);cx.quadraticCurveTo(x,y,x+r,y);cx.closePath();
-}
-function getData(){
-  return{
-    label:document.getElementById('fLabel').value||'',
-    name:document.getElementById('fName').value||'PRODUTO',
-    sub:document.getElementById('fSub').value||'',
-    price:document.getElementById('fPrice').value||'',
-    offer:document.getElementById('fOffer').value||'',
-    cta:document.getElementById('fCTA').value||'Comprar agora'
-  };
-}
-function getC(){
-  return{
-    name:document.getElementById('cN').value,
-    sub:document.getElementById('cS').value,
-    price:document.getElementById('cP').value,
-    label:document.getElementById('cL').value,
-    accent:document.getElementById('cA').value,
-    offer:document.getElementById('cO').value,
-    ctaBg:document.getElementById('cCb').value,
-    ctaTx:document.getElementById('cCt').value
-  };
+function renderList() {
+  document.getElementById('count').textContent = filtered.length + ' empresa(s)';
+  document.getElementById('contact-list').innerHTML = filtered.map((c) => {
+    const idx = contacts.indexOf(c);
+    const sent = sentList.includes(c.phone);
+    const active = selected && selected === c;
+    return `<div class="citem${active?' active':''}" onclick="selectContact(${idx})">
+      <div class="cname">${c.name}</div>
+      <div class="ctype">${c.type || '—'}</div>
+      <div class="cphone">${c.phone || 'sem telefone'}</div>
+      ${sent ? '<div class="sent-mark">✓ Enviado</div>' : ''}
+    </div>`;
+  }).join('');
 }
 
-// ── PLAYBACK ──
-const TRIG={0.45:'whoosh',0.82:'impact',1.75:'soft',2.75:'soft',3.75:'soft'};
-function fireSnd(t){
-  for(const[tm,s]of Object.entries(TRIG)){
-    if(t>=parseFloat(tm)&&!triggered[tm]){triggered[tm]=true;snd(s);}
-  }
-}
-function startPlay(){
-  if(!img&&!bgImg){alert('Carregue pelo menos uma imagem.');return;}
-  cancelAnimationFrame(raf);ct=0;pauseAt=0;triggered={};playing=true;
-  document.getElementById('tBtn').textContent='⏸';
-  document.getElementById('tBtn').onclick=togglePlay;
-  t0=performance.now();loop();
-}
-function togglePlay(){
-  if(!img&&!bgImg){alert('Carregue pelo menos uma imagem.');return;}
-  if(playing){
-    playing=false;pauseAt=ct;cancelAnimationFrame(raf);
-    document.getElementById('tBtn').textContent='▶';
-  }else{
-    playing=true;t0=performance.now()-pauseAt*1000;
-    document.getElementById('tBtn').textContent='⏸';loop();
-  }
-}
-function loop(){
-  if(!playing)return;
-  ct=Math.min((performance.now()-t0)/1000,DUR);
-  fireSnd(ct);drawFrame(ct);updP();
-  if(ct>=DUR){
-    playing=false;
-    const b=document.getElementById('tBtn');b.textContent='↺';b.onclick=startPlay;
-    return;
-  }
-  raf=requestAnimationFrame(loop);
-}
-function onScrub(e){
-  const r=e.currentTarget.getBoundingClientRect();
-  ct=cl((e.clientX-r.left)/r.width,0,1)*DUR;
-  pauseAt=ct;triggered={};drawFrame(ct);updP();
-}
-function updP(){
-  const p=ct/DUR;
-  document.getElementById('sf').style.width=(p*100)+'%';
-  document.getElementById('st').style.left=(p*100)+'%';
-  const s=Math.floor(ct),ds=Math.floor(DUR);
-  document.getElementById('td').textContent=`0:${String(s).padStart(2,'0')} / 0:${String(ds).padStart(2,'0')}`;
+function selectContact(idx) {
+  selected = contacts[idx];
+  renderList();
+  renderDetail();
 }
 
-// ── DRAW ──
-function drawFrame(t){
-  if(FMT==='horizontal'){drawFrameH(t);return;}
-  const d=getData(),c=getC();
-  cx.clearRect(0,0,W,H);
-  if(bgImg){
-    const sc=Math.max(W/bgImg.width,H/bgImg.height);
-    const dw=bgImg.width*sc,dh=bgImg.height*sc;
-    cx.drawImage(bgImg,(W-dw)/2,(H-dh)/2,dw,dh);
-  }else{cx.fillStyle='#08080a';cx.fillRect(0,0,W,H);}
-  cx.fillStyle=`rgba(0,0,0,${ovAlpha})`;cx.fillRect(0,0,W,H);
-
-  const ga=eO3(pr(t,0.3,1.6));
-  if(ga>0){
-    const g=cx.createRadialGradient(W/2,H*0.37,0,W/2,H*0.37,W*0.55);
-    g.addColorStop(0,h2r(c.accent,0.08*ga));g.addColorStop(1,'rgba(0,0,0,0)');
-    cx.fillStyle=g;cx.fillRect(0,0,W,H);
-  }
-
-  if(img){
-    const fp=pr(t,0.45,1.3),ia=eO3(pr(t,0.45,0.7));
-    const tX=W/2,tY=H*0.36;
-    const sc=Math.min((W*pScale)/img.width,(H*0.47)/img.height);
-    const iw=img.width*sc,ih=img.height*sc;
-    const sY=-ih/2-20;
-    const cY=fp>0?sY+(tY-sY)*sb(fp):sY;
-    const rot=fp>0&&fp<1?0.05*(1-sb(fp))*Math.sin(fp*Math.PI):0;
-    if(fp>0.82){
-      const sha=eO3(pr(t,0.45+0.85*0.82,0.45+0.85+0.35));
-      cx.save();cx.scale(1,0.2);
-      const sg=cx.createRadialGradient(tX,(tY+ih*0.44)/0.2,0,tX,(tY+ih*0.44)/0.2,iw*0.4*sha);
-      sg.addColorStop(0,`rgba(0,0,0,${0.55*sha})`);sg.addColorStop(1,'rgba(0,0,0,0)');
-      cx.fillStyle=sg;cx.beginPath();
-      cx.ellipse(tX,(tY+ih*0.44)/0.2,iw*0.4*sha,20*sha,0,0,Math.PI*2);cx.fill();cx.restore();
-    }
-    if(ia>0){
-      cx.save();cx.globalAlpha=ia;cx.translate(tX,cY);cx.rotate(rot);
-      cx.drawImage(img,-iw/2,-ih/2,iw,ih);cx.restore();
-    }
-  }
-
-  cx.textAlign='center';
-  const TX=W/2;
-  const ep=eO5(pr(t,1.5,2.0));
-  if(ep>0&&d.label){
-    cx.save();cx.globalAlpha=ep;const oy=(1-ep)*11;
-    cx.fillStyle=c.label;cx.font='600 10px -apple-system,Helvetica,Arial,sans-serif';
-    cx.letterSpacing='2.5px';cx.fillText(d.label,TX,H*0.616+oy);cx.letterSpacing='0px';cx.restore();
-  }
-  const np=eO5(pr(t,1.72,2.32));
-  if(np>0){
-    cx.save();cx.globalAlpha=np;const oy=(1-np)*17;
-    cx.fillStyle=c.name;cx.font='700 42px -apple-system,"SF Pro Display",Helvetica,Arial,sans-serif';
-    cx.fillText(d.name,TX,H*0.68+oy);cx.restore();
-  }
-  const sp=eO5(pr(t,2.05,2.62));
-  if(sp>0&&d.sub){
-    cx.save();cx.globalAlpha=sp*0.78;const oy=(1-sp)*13;
-    cx.fillStyle=c.sub;cx.font='300 15px -apple-system,"SF Pro Display",Helvetica,Arial,sans-serif';
-    cx.fillText(d.sub,TX,H*0.722+oy);cx.restore();
-  }
-  const dp=eO3(pr(t,2.4,2.95));
-  if(dp>0){
-    cx.save();cx.globalAlpha=dp;const lw=38*dp;
-    cx.fillStyle=c.accent;cx.fillRect(TX-lw/2,H*0.752,lw,1.5);cx.restore();
-  }
-  const pp=eO5(pr(t,2.7,3.28));
-  if(pp>0&&d.price){
-    cx.save();cx.globalAlpha=pp;const oy=(1-pp)*11;
-    cx.fillStyle=c.price;cx.font='600 32px -apple-system,"SF Pro Display",Helvetica,Arial,sans-serif';
-    cx.fillText(d.price,TX,H*0.812+oy);cx.restore();
-  }
-  const op=eO5(pr(t,3.05,3.62));
-  if(op>0&&d.offer){
-    cx.save();cx.globalAlpha=op;const oy=(1-op)*10;
-    cx.font='500 12px -apple-system,Helvetica,Arial,sans-serif';
-    const tw=cx.measureText(d.offer).width;
-    const bw=tw+26,bh=26,bx=TX-bw/2,by=H*0.838+oy;
-    cx.fillStyle=h2r(c.offer,0.14);rr(bx,by,bw,bh,7);cx.fill();
-    cx.strokeStyle=h2r(c.offer,0.28);cx.lineWidth=1;rr(bx,by,bw,bh,7);cx.stroke();
-    cx.fillStyle=c.offer;cx.fillText(d.offer,TX,by+18);cx.restore();
-  }
-  const cp=eO5(pr(t,3.55,4.18));
-  if(cp>0&&d.cta){
-    cx.save();cx.globalAlpha=cp;const oy=(1-cp)*10;
-    const bw=175,bh=43,bx=TX-bw/2,by=H*0.885+oy;
-    cx.fillStyle=c.ctaBg;rr(bx,by,bw,bh,12);cx.fill();
-    cx.fillStyle=c.ctaTx;cx.font='600 14px -apple-system,Helvetica,Arial,sans-serif';
-    cx.fillText(d.cta,TX,by+28);cx.restore();
-  }
-  cx.textAlign='left';
+function wppLink(phone) {
+  const num = phone.replace(/\D/g,'');
+  const full = num.startsWith('55') ? num : '55' + num;
+  return 'https://wa.me/' + full + '?text=' + encodeURIComponent(getGlobalMsg());
 }
 
-// ── EXPORT MP4 ──
-function setExpStatus(step, pct, detail){
-  const s=document.getElementById('expStatus');
-  s.classList.add('show');
-  document.getElementById('expStepLbl').textContent=step;
-  document.getElementById('expPct').textContent=Math.round(pct)+'%';
-  document.getElementById('expBar').style.width=pct+'%';
-  if(detail)document.getElementById('expDetail').textContent=detail;
-}
+function renderDetail() {
+  const c = selected;
+  if (!c) return;
+  const sent = sentList.includes(c.phone);
 
-// ── HORIZONTAL DRAW ──
-function drawFrameH(t){
-  const d=getData(),c=getC();
-  cx.clearRect(0,0,W,H);
-
-  // BG
-  if(bgImg){
-    const sc=Math.max(W/bgImg.width,H/bgImg.height);
-    const dw=bgImg.width*sc,dh=bgImg.height*sc;
-    cx.drawImage(bgImg,(W-dw)/2,(H-dh)/2,dw,dh);
-  }else{cx.fillStyle='#08080a';cx.fillRect(0,0,W,H);}
-  cx.fillStyle=`rgba(0,0,0,${ovAlpha})`;cx.fillRect(0,0,W,H);
-
-  // glow right side
-  const ga=eO3(pr(t,0.3,1.6));
-  if(ga>0){
-    const g=cx.createRadialGradient(W*0.72,H*0.5,0,W*0.72,H*0.5,W*0.3);
-    g.addColorStop(0,h2r(c.accent,0.09*ga));g.addColorStop(1,'rgba(0,0,0,0)');
-    cx.fillStyle=g;cx.fillRect(0,0,W,H);
-  }
-
-  // PRODUCT — right side, bounce from top
-  if(img){
-    const fp=pr(t,0.45,1.3),ia=eO3(pr(t,0.45,0.7));
-    const tX=W*0.72,tY=H*0.5;
-    const sc=Math.min((W*0.42)/img.width,(H*0.82)/img.height);
-    const iw=img.width*sc,ih=img.height*sc;
-    const sY=-ih/2-30;
-    const cY=fp>0?sY+(tY-sY)*sb(fp):sY;
-    const rot=fp>0&&fp<1?0.04*(1-sb(fp))*Math.sin(fp*Math.PI):0;
-
-    // shadow
-    if(fp>0.82){
-      const sha=eO3(pr(t,0.45+0.85*0.82,0.45+0.85+0.35));
-      cx.save();cx.scale(1,0.15);
-      const sg=cx.createRadialGradient(tX,(tY+ih*0.44)/0.15,0,tX,(tY+ih*0.44)/0.15,iw*0.4*sha);
-      sg.addColorStop(0,`rgba(0,0,0,${0.6*sha})`);sg.addColorStop(1,'rgba(0,0,0,0)');
-      cx.fillStyle=sg;cx.beginPath();
-      cx.ellipse(tX,(tY+ih*0.44)/0.15,iw*0.4*sha,20*sha,0,0,Math.PI*2);cx.fill();cx.restore();
-    }
-    if(ia>0){
-      cx.save();cx.globalAlpha=ia;cx.translate(tX,cY);cx.rotate(rot);
-      cx.drawImage(img,-iw/2,-ih/2,iw,ih);cx.restore();
-    }
-  }
-
-  // TEXT BLOCK — left side, vertically centered
-  const TX=72;
-  cx.textAlign='left';
-
-  // label
-  const ep=eO5(pr(t,1.5,2.0));
-  if(ep>0&&d.label){
-    cx.save();cx.globalAlpha=ep;const oy=(1-ep)*11;
-    cx.fillStyle=c.label;cx.font='600 11px -apple-system,Helvetica,Arial,sans-serif';
-    cx.letterSpacing='2.5px';cx.fillText(d.label,TX,H*0.3+oy);cx.letterSpacing='0px';cx.restore();
-  }
-
-  // name
-  const np=eO5(pr(t,1.72,2.32));
-  if(np>0){
-    cx.save();cx.globalAlpha=np;const oy=(1-np)*18;
-    cx.fillStyle=c.name;cx.font='700 68px -apple-system,"SF Pro Display",Helvetica,Arial,sans-serif';
-    cx.fillText(d.name,TX,H*0.42+oy);cx.restore();
-  }
-
-  // subtitle
-  const sp=eO5(pr(t,2.05,2.62));
-  if(sp>0&&d.sub){
-    cx.save();cx.globalAlpha=sp*0.75;const oy=(1-sp)*13;
-    cx.fillStyle=c.sub;cx.font='300 22px -apple-system,"SF Pro Display",Helvetica,Arial,sans-serif';
-    cx.fillText(d.sub,TX,H*0.49+oy);cx.restore();
-  }
-
-  // divider
-  const dp=eO3(pr(t,2.4,2.95));
-  if(dp>0){
-    cx.save();cx.globalAlpha=dp;
-    cx.fillStyle=c.accent;cx.fillRect(TX,H*0.54,50*dp,2);cx.restore();
-  }
-
-  // price
-  const pp=eO5(pr(t,2.7,3.28));
-  if(pp>0&&d.price){
-    cx.save();cx.globalAlpha=pp;const oy=(1-pp)*12;
-    cx.fillStyle=c.price;cx.font='700 52px -apple-system,"SF Pro Display",Helvetica,Arial,sans-serif';
-    cx.fillText(d.price,TX,H*0.64+oy);cx.restore();
-  }
-
-  // offer
-  const op=eO5(pr(t,3.05,3.62));
-  if(op>0&&d.offer){
-    cx.save();cx.globalAlpha=op;const oy=(1-op)*10;
-    cx.font='500 14px -apple-system,Helvetica,Arial,sans-serif';
-    const tw=cx.measureText(d.offer).width;
-    const bw=tw+28,bh=30,bx=TX,by=H*0.69+oy;
-    cx.fillStyle=h2r(c.offer,0.14);rr(bx,by,bw,bh,7);cx.fill();
-    cx.strokeStyle=h2r(c.offer,0.28);cx.lineWidth=1;rr(bx,by,bw,bh,7);cx.stroke();
-    cx.fillStyle=c.offer;cx.fillText(d.offer,bx+14,by+21);cx.restore();
-  }
-
-  // CTA
-  const cp=eO5(pr(t,3.55,4.18));
-  if(cp>0&&d.cta){
-    cx.save();cx.globalAlpha=cp;const oy=(1-cp)*10;
-    const bw=200,bh=48,bx=TX,by=H*0.77+oy;
-    cx.fillStyle=c.ctaBg;rr(bx,by,bw,bh,12);cx.fill();
-    cx.fillStyle=c.ctaTx;cx.font='600 15px -apple-system,Helvetica,Arial,sans-serif';
-    cx.textAlign='center';cx.fillText(d.cta,bx+bw/2,by+32);cx.textAlign='left';cx.restore();
-  }
-}
-
-// Export MP4 using WebCodecs + mp4-muxer
-async function exportMP4(){
-  if(!img&&!bgImg){alert('Carregue pelo menos uma imagem primeiro.');return;}
-  if(typeof VideoEncoder==='undefined'){
-    alert('⚠️ Exportação MP4 não disponível neste navegador.\n\nUse Google Chrome (versão 94 ou superior) para exportar.\n\nSafari e Firefox não suportam esta funcionalidade.');
-    return;
-  }
-  const btn=document.getElementById('btnExp');
-  btn.disabled=true;btn.textContent='Exportando...';
-  document.getElementById('expStatus').classList.add('show');
-  document.getElementById('expDetail').style.color='';
-
-  try{
-    const FPS=24;
-    const totalFrames=Math.ceil(DUR*FPS);
-
-    setExpStatus('Verificando suporte...',1,'Detectando codec compatível');
-
-    // Try codecs in order of preference
-    const codecs=['avc1.42E01F','avc1.4D001F','avc1.64001F','avc1.420028'];
-    let chosenCodec=null;
-    for(const c of codecs){
-      try{
-        const sup=await VideoEncoder.isConfigSupported({
-          codec:c,width:W,height:H,bitrate:5_000_000,framerate:FPS
-        });
-        if(sup.supported){chosenCodec=c;break;}
-      }catch(e){}
-    }
-    if(!chosenCodec){
-      throw new Error('Nenhum codec H.264 suportado neste navegador. Use Chrome 94+.');
-    }
-
-    setExpStatus('Preparando encoder...',3,'Codec: '+chosenCodec);
-    await new Promise(r=>setTimeout(r,50));
-
-    const {Muxer,ArrayBufferTarget}=Mp4Muxer;
-    const target=new ArrayBufferTarget();
-    const muxer=new Muxer({
-      target,
-      video:{codec:'avc',width:W,height:H,frameRate:FPS},
-      fastStart:'in-memory'
-    });
-
-    const chunks=[];
-    let encError=null;
-    const encoder=new VideoEncoder({
-      output:(chunk,meta)=>{
-        try{muxer.addVideoChunk(chunk,meta);}
-        catch(e){encError=e;}
-      },
-      error:e=>{encError=e;}
-    });
-
-    encoder.configure({
-      codec:chosenCodec,
-      width:W,height:H,
-      bitrate:5_000_000,
-      framerate:FPS,
-      latencyMode:'quality'
-    });
-
-    // small delay to let configure settle
-    await new Promise(r=>setTimeout(r,100));
-    if(encoder.state==='closed') throw new Error('Encoder fechou após configure — codec incompatível.');
-    if(encError) throw encError;
-
-    setExpStatus('Renderizando frames...',5,`0 de ${totalFrames} frames`);
-
-    for(let i=0;i<totalFrames;i++){
-      if(encError) throw encError;
-      if(encoder.state==='closed') throw new Error('Encoder fechou inesperadamente no frame '+i);
-
-      const t=i/FPS;
-      drawFrame(t);
-
-      const ts=Math.round(i*(1_000_000/FPS));
-      const dur=Math.round(1_000_000/FPS);
-      const frame=new VideoFrame(cv,{timestamp:ts,duration:dur});
-      const isKey=i%30===0;
-      encoder.encode(frame,{keyFrame:isKey});
-      frame.close();
-
-      // yield every 5 frames to keep UI responsive
-      if(i%3===0){
-        const pct=5+(i/totalFrames)*78;
-        setExpStatus('Renderizando frames...',pct,`${i+1} de ${totalFrames} frames`);
-        await new Promise(r=>setTimeout(r,0));
+  document.getElementById('main').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="company-name">${c.name}</div>
+          <div class="company-type">${c.type}</div>
+          ${sent ? '<div class="sent-mark" style="margin-top:6px;font-size:11px">✓ Mensagem já enviada</div>' : ''}
+        </div>
+        ${c.rating ? `<div class="rating">⭐ ${c.rating}&nbsp;<span style="font-weight:400;font-size:12px">${c.reviews}</span></div>` : ''}
+      </div>
+      <div class="info-grid">
+        <div class="info-item"><label>Telefone</label><p>${c.phone || '—'}</p></div>
+        <div class="info-item"><label>Situação</label><p>${c.status || '—'}</p></div>
+        <div class="info-item" style="grid-column:1/-1"><label>Endereço</label><p>${c.addr || '—'}</p></div>
+        ${c.hours ? `<div class="info-item" style="grid-column:1/-1"><label>Horário</label><p>${c.hours}</p></div>` : ''}
+      </div>
+      ${c.review ? `<div class="review-box">"${c.review}"</div>` : ''}
+      <div class="btn-row">
+        ${c.maps    ? `<a class="btn btn-maps" href="${c.maps}" target="_blank">📍 Google Maps</a>` : ''}
+        ${c.website ? `<a class="btn btn-web"  href="${c.website}" target="_blank">🌐 Website</a>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      ${c.phone
+        ? `<a class="btn-send-wpp" id="wpp-send-btn" href="${wppLink(c.phone)}" target="_blank" onclick="markSent('${c.phone}')">
+            📲 Enviar mensagem via WhatsApp
+           </a>`
+        : `<p class="no-phone">⚠️ Esta empresa não tem telefone cadastrado.</p>`
       }
-    }
+    </div>
+  `;
+}
 
-    setExpStatus('Finalizando...',85,'Aguardando encoder...');
-    await encoder.flush();
-    if(encError) throw encError;
-    encoder.close();
-    muxer.finalize();
-
-    setExpStatus('Gerando download...',97,'Preparando arquivo MP4');
-    const blob=new Blob([target.buffer],{type:'video/mp4'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download='video-produto.mp4';a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),10000);
-
-    setExpStatus('✓ MP4 salvo!',100,'Download iniciado — verifique sua pasta de downloads');
-    const pill=document.getElementById('navPill');
-    pill.textContent='✓ MP4 SALVO';
-    pill.style.background='rgba(48,209,88,.12)';
-    pill.style.borderColor='rgba(48,209,88,.25)';
-    pill.style.color='#30d158';
-
-  }catch(err){
-    setExpStatus('Erro na exportação',0,'');
-    document.getElementById('expDetail').textContent=err.message||String(err);
-    document.getElementById('expDetail').style.color='#ff453a';
-    console.error(err);
+function markSent(phone) {
+  if (!sentList.includes(phone)) {
+    sentList.push(phone);
+    localStorage.setItem('sent_v3', JSON.stringify(sentList));
+    renderList();
+    if (selected) renderDetail();
   }
-  btn.disabled=false;btn.textContent='↓ Exportar .MP4';
 }
 
-// ── AI ──
-// ── SUGESTÕES DE COPY LOCAIS (sem API key exposta) ──
-const COPY_BANK = {
-  subtitulos:['Tecnologia que transforma','Qualidade sem compromisso','O futuro chegou','Performance de elite','Inovação em cada detalhe','Design que impressiona','Mais potência, menos preço','Experiência que surpreende'],
-  ofertas:['50% OFF · Frete grátis','Leve hoje, pague depois','Oferta por tempo limitado','Desconto exclusivo online','Brinde especial incluso','Parcelamos em 12x sem juros','Garantia de 12 meses','Estoque limitado'],
-  ctas:['Comprar agora','Garantir meu desconto','Quero esse produto','Aproveitar oferta','Pedir agora'],
-  precos:['R$ 197','R$ 297','R$ 397','R$ 497','R$ 597','R$ 997']
-};
-function rndItem(arr){return arr[Math.floor(Math.random()*arr.length)];}
-
-async function runAI(){
-  const btn=document.getElementById('btnAI'),out=document.getElementById('aiOut');
-  const name=document.getElementById('fName').value||'produto';
-  btn.disabled=true;btn.textContent='Gerando...';
-  out.className='ai-out show';out.textContent='Gerando sugestões...';
-  
-  // Simulate brief thinking
-  await new Promise(r=>setTimeout(r,600));
-  
-  const p={
-    subtitulo: rndItem(COPY_BANK.subtitulos),
-    oferta: rndItem(COPY_BANK.ofertas),
-    cta: rndItem(COPY_BANK.ctas),
-    preco: rndItem(COPY_BANK.precos)
-  };
-  
-  document.getElementById('fSub').value=p.subtitulo;
-  document.getElementById('fOffer').value=p.oferta;
-  document.getElementById('fCTA').value=p.cta;
-  document.getElementById('fPrice').value=p.preco;
-  out.innerHTML=Object.entries(p).map(([k,v])=>`<strong>${k}:</strong> ${v}`).join('<br>');
-  out.innerHTML+='<br><span style="color:rgba(255,255,255,.2);font-size:10px">Clique novamente para outras sugestões</span>';
-  drawFrame(ct);
-  
-  btn.disabled=false;btn.textContent='Sugerir textos automaticamente';
+function saveMsg() {
+  const txt = getGlobalMsg().trim();
+  if (!txt) { alert('Escreva uma mensagem antes de salvar!'); return; }
+  if (!savedMsgs.includes(txt)) {
+    savedMsgs.unshift(txt);
+    if (savedMsgs.length > 15) savedMsgs.pop();
+    localStorage.setItem('msgs_v3', JSON.stringify(savedMsgs));
+    renderSaved();
+  }
 }
 
-// ── INIT ──
-(function(){
-  cx.fillStyle='#08080a';cx.fillRect(0,0,W,H);
-  cx.fillStyle='rgba(255,255,255,.07)';
-  cx.font='300 13px -apple-system,Helvetica,Arial,sans-serif';
-  cx.textAlign='center';
-  cx.fillText('Carregue as imagens para começar',W/2,H/2-8);
-  cx.fillStyle='rgba(255,255,255,.03)';cx.font='11px -apple-system,Helvetica,Arial,sans-serif';
-  cx.fillText('Aba Imagens → Fundo + Produto',W/2,H/2+14);
-  cx.textAlign='left';
-})();
+function renderSaved() {
+  const el = document.getElementById('saved-list');
+  if (!el) return;
+  if (savedMsgs.length === 0) {
+    el.innerHTML = '<p class="no-saved">Nenhuma mensagem salva ainda.</p>';
+    return;
+  }
+  el.innerHTML = savedMsgs.map((m, i) => `
+    <div class="saved-item" onclick="useMsg(${i})" title="Clique para usar">
+      <span class="saved-text">${m.substring(0,100)}${m.length>100?'...':''}</span>
+      <span class="saved-del" onclick="event.stopPropagation();delMsg(${i})">×</span>
+    </div>
+  `).join('');
+}
+
+function useMsg(i) {
+  document.getElementById('global-msg').value = savedMsgs[i];
+  onMsgInput();
+}
+
+function delMsg(i) {
+  savedMsgs.splice(i, 1);
+  localStorage.setItem('msgs_v3', JSON.stringify(savedMsgs));
+  renderSaved();
+}
+
+function toggleTimer() {
+  if (timerOn) {
+    clearInterval(timerRef);
+    timerOn = false;
+    document.getElementById('tbtn').textContent = '▶ Iniciar';
+    document.getElementById('tbtn').classList.remove('running');
+  } else {
+    const mins = parseInt(document.getElementById('tmin').value) || 10;
+    timerSec = mins * 60;
+    timerOn = true;
+    document.getElementById('tbtn').textContent = '⏸ Pausar';
+    document.getElementById('tbtn').classList.add('running');
+    updateTimerDisp();
+    timerRef = setInterval(() => {
+      timerSec--;
+      updateTimerDisp();
+      if (timerSec <= 0) {
+        clearInterval(timerRef);
+        timerOn = false;
+        document.getElementById('tbtn').textContent = '▶ Iniciar';
+        document.getElementById('tbtn').classList.remove('running');
+        beep3();
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerRef);
+  timerOn = false;
+  document.getElementById('tbtn').textContent = '▶ Iniciar';
+  document.getElementById('tbtn').classList.remove('running');
+  const mins = parseInt(document.getElementById('tmin').value) || 10;
+  timerSec = mins * 60;
+  updateTimerDisp();
+}
+
+function updateTimerDisp() {
+  const m = Math.floor(timerSec / 60);
+  const s = timerSec % 60;
+  const el = document.getElementById('tdisp');
+  el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  el.classList.toggle('urgent', timerSec > 0 && timerSec <= 10);
+}
+
+function beep3() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.45, 0.9].forEach(d => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 880; o.type = 'sine';
+      g.gain.setValueAtTime(0.5, ctx.currentTime + d);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.35);
+      o.start(ctx.currentTime + d);
+      o.stop(ctx.currentTime + d + 0.35);
+    });
+  } catch(e) { alert('⏰ HORA DE ENVIAR A PRÓXIMA MENSAGEM!'); }
+}
+
+updateTimerDisp();
+document.getElementById('tmin').addEventListener('change', () => { if (!timerOn) resetTimer(); });
 </script>
 </body>
 </html>
